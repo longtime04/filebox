@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文件站 · 公开下载</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:#f4f6f5; color:#12332a; }
+  header { background:linear-gradient(135deg,#07261d,#0b3d2e); color:#eef7f3; padding:30px 20px 26px; text-align:center; }
+  header h1 { font-size:23px; letter-spacing:3px; }
+  header p { margin-top:8px; font-size:13px; color:#9db8ae; }
+  header .rule { width:54px; height:3px; border-radius:2px; background:linear-gradient(90deg,#dec684,#c8a24a); margin:14px auto 0; }
+  main { max-width:640px; margin:0 auto; padding:18px 14px 40px; }
+  .card { background:#fff; border:1px solid #e2eae7; border-radius:14px; padding:15px 16px; margin-bottom:11px;
+          display:flex; align-items:center; gap:13px; box-shadow:0 1px 4px rgba(7,38,29,.05); }
+  .ic { width:42px; height:42px; border-radius:11px; background:#0b3d2e; color:#dec684; flex:none;
+        display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; letter-spacing:.5px; }
+  .meta { flex:1; min-width:0; }
+  .name { font-size:15px; font-weight:600; word-break:break-all; }
+  .sub { font-size:12px; color:#7d938a; margin-top:3px; }
+  a.dl { flex:none; background:#0f766e; color:#fff; text-decoration:none; font-size:13.5px; font-weight:600;
+         padding:9px 16px; border-radius:999px; }
+  .empty, .err { text-align:center; color:#7d938a; font-size:14px; padding:36px 10px; line-height:1.7; }
+  footer { text-align:center; font-size:12px; color:#a7bab3; padding:0 16px 30px; line-height:1.7; }
+</style>
+</head>
+<body>
+<header>
+  <h1>文件站</h1>
+  <p>安装包与测试版 · 点按即下，不限次数</p>
+  <div class="rule"></div>
+</header>
+<main id="list"><div class="empty">正在加载文件列表…</div></main>
+<footer>文件由作者不定期更新 · 链接长期有效<br>隐私文件不在此处，请勿在此索取</footer>
+<script>
+var API = 'https://api.github.com/repos/longtime04/filebox/releases/tags/files';
+function fmtSize(b){ if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  if(b<1073741824) return (b/1048576).toFixed(1)+' MB'; return (b/1073741824).toFixed(2)+' GB'; }
+function fmtDate(s){ var d=new Date(s); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function ext(name){ var m=name.match(/\.([A-Za-z0-9]{1,5})$/); return m? m[1].toUpperCase() : 'FILE'; }
+fetch(API).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }).then(function(rel){
+  var box = document.getElementById('list');
+  var assets = (rel.assets||[]).slice().sort(function(a,b){ return new Date(b.updated_at)-new Date(a.updated_at); });
+  if(!assets.length){ box.innerHTML = '<div class="empty">暂时还没有文件，过段时间再来看看。</div>'; return; }
+  box.innerHTML = assets.map(function(a){
+    return '<div class="card"><div class="ic">'+ext(a.name)+'</div><div class="meta"><div class="name">'
+      + a.name.replace(/</g,'&lt;') + '</div><div class="sub">' + fmtSize(a.size) + ' · ' + fmtDate(a.updated_at)
+      + ' · 已下载 ' + a.download_count + ' 次</div></div><a class="dl" href="' + a.browser_download_url + '">下载</a></div>';
+  }).join('');
+}).catch(function(){
+  document.getElementById('list').innerHTML = '<div class="err">列表加载失败，可以直接去仓库的 Release 页下载：<br><a href="https://github.com/longtime04/filebox/releases">github.com/longtime04/filebox/releases</a></div>';
+});
+</script>
+</body>
+</html>
