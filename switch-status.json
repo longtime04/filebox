@@ -1,1 +1,1 @@
-{"chatUrl":null,"keepAliveAt":null,"note":"重开失败：本轮无浏览器任务工具、也无 Kaggle API 凭证，本地浏览器外网导航刚复测仍被出口代理拒绝，无法登录 Kaggle 操作，需主聊天用浏览器重开","state":"error","updatedAt":"2026-11-21T06:42:12+08:00"}
+{"chatUrl":"https://lectures-grass-hurricane-assured.trycloudflare.com","keepAliveAt":null,"note":"2026-11-21 06:47 主聊天浏览器重开成功，实测 /v1/models 与一次对话均通过；90 分钟后自动关","state":"running","updatedAt":"2026-11-21T06:47:00+08:00"}
