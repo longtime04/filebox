@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>千问3.8 开关</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;padding:20px 16px 40px;color:#1a1a1a;background:#fafafa}
+  h1{font-size:22px;margin:8px 0 4px}
+  .sub{color:#666;font-size:13px;margin-bottom:18px}
+  .card{background:#fff;border:1px solid #e3e3e3;border-radius:14px;padding:18px;margin-bottom:16px}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:8px;vertical-align:middle}
+  .off{background:#bdbdbd}.starting{background:#fb8c00}.running{background:#43a047}.stopping{background:#fb8c00}.error{background:#e53935}
+  .state{font-size:19px;font-weight:600}
+  .note{color:#555;font-size:14px;margin-top:8px;line-height:1.55}
+  .upd{color:#999;font-size:12px;margin-top:8px}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  a.btn{flex:1;min-width:100px;text-align:center;text-decoration:none;padding:14px 6px;border-radius:12px;font-size:16px;font-weight:600;border:1px solid #ddd;background:#fff;color:#1a1a1a}
+  a.btn.primary{background:#1a73e8;color:#fff;border-color:#1a73e8}
+  a.btn:active{opacity:.75}
+  .chatlink{display:block;text-align:center;background:#43a047;color:#fff;text-decoration:none;padding:14px;border-radius:12px;font-weight:600;font-size:16px;margin-top:10px}
+  textarea{width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:15px;min-height:64px}
+  button.send{width:100%;margin-top:8px;padding:12px;border:none;border-radius:10px;background:#1a73e8;color:#fff;font-size:16px;font-weight:600}
+  .reply{white-space:pre-wrap;background:#f4f6f8;border-radius:10px;padding:12px;margin-top:12px;font-size:15px;line-height:1.6;display:none}
+  .tip{color:#777;font-size:13px;line-height:1.7}
+</style>
+</head>
+<body>
+<h1>千问 3.8 开关</h1>
+<div class="sub">Qwen3.8-27B · Kaggle 双 T4 · 按需开启</div>
+
+<div class="card">
+  <div class="state"><span id="dot" class="dot off"></span><span id="stateText">读取状态中…</span></div>
+  <div class="note" id="note"></div>
+  <div id="chatLinkWrap"></div>
+  <div class="upd" id="upd"></div>
+</div>
+
+<div class="card">
+  <div class="btns">
+    <a class="btn primary" href="https://t.me/long_qwen_switch_bot?start=START">开启</a>
+    <a class="btn" href="https://t.me/long_qwen_switch_bot?start=KEEP">续时</a>
+    <a class="btn" href="https://t.me/long_qwen_switch_bot?start=STOP">关闭</a>
+  </div>
+  <p class="tip" style="margin-top:12px">点按钮会跳到 Telegram，再点一下里面的「开始 / Start」就是确认，我收到就去开（或关）。开好大约 2–3 分钟，机器人会把聊天链接发你，微信也会通知你。</p>
+</div>
+
+<div class="card" id="chatCard" style="display:none">
+  <div style="font-weight:600;margin-bottom:8px">直接在这里聊</div>
+  <textarea id="msg" placeholder="输入你想问的…"></textarea>
+  <button class="send" id="sendBtn">发送</button>
+  <div class="reply" id="reply"></div>
+</div>
+
+<p class="tip">说明：开启后如果一直没人用，我会自动帮你关掉省额度；想多用一会儿就点「续时」。状态偶尔会慢几分钟更新，以 Telegram 和微信的消息为准。这个页面别转发给别人。</p>
+
+<script>
+var STATUS_URL = 'https://raw.githubusercontent.com/longtime04/filebox/main/switch-status.json';
+var MODEL = 'qwen3.8-27b-uncensored';
+var chatUrl = null;
+var history = [];
+var NAMES = {off:'未开启', starting:'正在开启…', running:'已开启', stopping:'正在关闭…', error:'出错了'};
+
+function refresh(){
+  fetch(STATUS_URL + '?t=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(s){
+      chatUrl = s.chatUrl || null;
+      document.getElementById('dot').className = 'dot ' + (s.state || 'off');
+      document.getElementById('stateText').textContent = NAMES[s.state] || s.state || '未知';
+      document.getElementById('note').textContent = s.note || '';
+      document.getElementById('upd').textContent = s.updatedAt ? ('更新于 ' + s.updatedAt.replace('T',' ').slice(0,19)) : '';
+      var wrap = document.getElementById('chatLinkWrap');
+      var card = document.getElementById('chatCard');
+      if (s.state === 'running' && chatUrl){
+        wrap.innerHTML = '';
+        var a = document.createElement('a');
+        a.className = 'chatlink'; a.href = chatUrl; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '打开聊天页';
+        wrap.appendChild(a);
+        card.style.display = 'block';
+      } else {
+        wrap.innerHTML = '';
+        card.style.display = 'none';
+      }
+    })
+    .catch(function(){
+      document.getElementById('stateText').textContent = '状态读取失败，稍后自动重试';
+    });
+}
+refresh();
+setInterval(refresh, 60000);
+
+document.getElementById('sendBtn').onclick = function(){
+  var box = document.getElementById('msg');
+  var text = box.value.trim();
+  var reply = document.getElementById('reply');
+  if (!text || !chatUrl) return;
+  reply.style.display = 'block';
+  reply.textContent = '思考中…';
+  history.push({role:'user', content:text});
+  fetch(chatUrl.replace(/\/$/,'') + '/v1/chat/completions', {
+    method:'POST',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify({model: MODEL, messages: history})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    var c = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    if (c){ history.push({role:'assistant', content:c}); reply.textContent = c; box.value=''; }
+    else { reply.textContent = '没有拿到回复，可能服务刚关或在忙，稍后再试。'; history.pop(); }
+  })
+  .catch(function(){
+    reply.textContent = '连不上服务，可能刚被关掉，或者页面直连被拦。用上面的「打开聊天页」试试，或重新开启一次。';
+    history.pop();
+  });
+};
+</script>
+</body>
+</html>
