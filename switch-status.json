@@ -1,1 +1,1 @@
-{"chatUrl":null,"keepAliveAt":null,"note":"正在 Kaggle 重开 Qwen 服务","state":"starting","updatedAt":"2026-11-21T06:32:00+08:00"}
+{"chatUrl":null,"keepAliveAt":null,"note":"重开失败：本轮无浏览器任务工具、也无 Kaggle API 凭证，无法登录 Kaggle 操作，需主聊天用浏览器重开","state":"error","updatedAt":"2026-11-21T06:35:00+08:00"}
