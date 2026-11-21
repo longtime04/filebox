@@ -1,1 +1,1 @@
-{"chatUrl":"https://lectures-grass-hurricane-assured.trycloudflare.com","keepAliveAt":null,"note":"2026-11-21 06:47 主聊天浏览器重开成功，实测 /v1/models 与一次对话均通过；90 分钟后自动关","state":"running","updatedAt":"2026-11-21T06:47:00+08:00"}
+{"chatUrl":"","keepAliveAt":null,"note":"2026-11-21 08:18 自动关：90 分钟无续时，Kaggle 版本 #2 已取消（运行 5940.4 秒），GPU 停止计时","state":"stopped","updatedAt":"2026-11-21T08:19:00+08:00"}
